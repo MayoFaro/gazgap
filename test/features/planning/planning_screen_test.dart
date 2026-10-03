@@ -20,6 +20,18 @@ void main() {
     expect(find.text('Aucun vol planifié.'), findsOneWidget);
   });
 
+  testWidgets('erreur du flux Firestore : message affiché, pas confondu avec une liste vide', (tester) async {
+    final flights = FakeFlightApi();
+    await tester.pumpWidget(host(flights));
+    await tester.pump();
+
+    flights.emitError('permission-denied');
+    await tester.pump();
+
+    expect(find.text('Aucun vol planifié.'), findsNothing);
+    expect(find.textContaining('Impossible de charger le planning'), findsOneWidget);
+  });
+
   testWidgets('affiche les vols reçus du flux', (tester) async {
     final flights = FakeFlightApi()..emit([testFlight(id: 'f1', destination: 'Lomé')]);
     await tester.pumpWidget(host(flights));
@@ -73,6 +85,28 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Hors ligne.'), findsOneWidget);
+  });
+
+  testWidgets('le bandeau d\'erreur disparaît après une action réussie', (tester) async {
+    final flights = FakeFlightApi()
+      ..emit([testFlight(id: 'f1')])
+      ..failWith = 'Hors ligne.';
+    await tester.pumpWidget(host(flights));
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('flight-f1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Marquer réalisé'));
+    await tester.pumpAndSettle();
+    expect(find.text('Hors ligne.'), findsOneWidget);
+
+    flights.failWith = null;
+    await tester.tap(find.byKey(const Key('flight-f1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Marquer réalisé'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Hors ligne.'), findsNothing);
   });
 
   testWidgets('suppression : confirmation puis appel delete', (tester) async {

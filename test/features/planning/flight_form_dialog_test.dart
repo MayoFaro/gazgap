@@ -86,6 +86,29 @@ void main() {
     expect(find.text('Durée invalide'), findsOneWidget);
   });
 
+  testWidgets('heure hors plage : bloque la soumission sans décaler la date', (tester) async {
+    FlightDraft? draft;
+    await tester.pumpWidget(MaterialApp(home: Builder(builder: (context) {
+      return ElevatedButton(
+        onPressed: () async {
+          draft = await showDialog<FlightDraft>(
+              context: context, builder: (_) => const FlightFormDialog());
+        },
+        child: const Text('ouvrir'),
+      );
+    })));
+    await tester.tap(find.text('ouvrir'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byKey(const Key('destination')), 'Lomé');
+    await tester.enterText(find.byKey(const Key('time')), '25:70');
+    await tester.tap(find.text('Enregistrer'));
+    await tester.pumpAndSettle();
+
+    expect(draft, isNull);
+    expect(find.text('Heure invalide'), findsOneWidget);
+  });
+
   testWidgets('modification : préremplit avec le vol existant', (tester) async {
     final existing = Flight(
       id: 'f1',

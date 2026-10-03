@@ -45,6 +45,8 @@ class FakeFlightApi implements FlightApi {
     _ctrl.add(flights);
   }
 
+  void emitError(Object error) => _ctrl.addError(error);
+
   @override
   Stream<List<Flight>> watchAll() async* {
     yield current;

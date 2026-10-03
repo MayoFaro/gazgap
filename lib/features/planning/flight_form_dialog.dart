@@ -66,6 +66,7 @@ class _FlightFormDialogState extends State<FlightFormDialog> {
     final h = int.tryParse(parts[0]);
     final m = int.tryParse(parts[1]);
     if (h == null || m == null) return null;
+    if (h < 0 || h > 23 || m < 0 || m > 59) return null;
     return DateTime(d.year, d.month, d.day, h, m);
   }
 

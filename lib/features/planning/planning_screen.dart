@@ -29,6 +29,7 @@ class _PlanningScreenState extends State<PlanningScreen> {
   Future<void> _run(Future<void> Function() action) async {
     try {
       await action();
+      if (mounted) setState(() => _error = null);
     } on FlightApiFailure catch (e) {
       if (mounted) setState(() => _error = e.message);
     }
@@ -130,6 +131,9 @@ class _PlanningScreenState extends State<PlanningScreen> {
         builder: (context, snap) {
           if (snap.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
+          }
+          if (snap.hasError) {
+            return const Center(child: Text('Impossible de charger le planning.'));
           }
           final flights = snap.data ?? const [];
           return Column(
