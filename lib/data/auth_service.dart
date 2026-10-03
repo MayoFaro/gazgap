@@ -31,9 +31,9 @@ String authErrorMessage(String code) {
   }
 }
 
-/// Un seul compte existera jamais côté client (spec) : pas de notion de
-/// vérification d'e-mail ni de document users à surveiller, contrairement à
-/// UlmGap.
+/// Deux comptes à droits identiques, pinnés par UID dans firestore.rules
+/// (spec) : pas de notion de vérification d'e-mail ni de document users à
+/// surveiller, contrairement à UlmGap.
 abstract class AuthService {
   Stream<AuthSnapshot?> changes();
   Future<void> signIn(String email, String password);
