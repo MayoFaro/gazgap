@@ -22,7 +22,8 @@ plugins {
     // START: FlutterFire Configuration
     id("com.google.gms.google-services") version("4.4.4") apply false
     // END: FlutterFire Configuration
-    id("org.jetbrains.kotlin.android") version "2.1.0" apply false
+    // firebase_auth 6.7.0 est compilé avec un Kotlin plus récent que 2.1.0 (métadonnées 2.3.0).
+    id("org.jetbrains.kotlin.android") version "2.2.0" apply false
 }
 
 include(":app")

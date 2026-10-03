@@ -11,7 +11,8 @@ plugins {
 android {
     namespace = "com.gazgap.gap"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    // Version la plus haute exigée par les plugins Firebase (flutter.ndkVersion est trop bas).
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -27,7 +28,8 @@ android {
         applicationId = "com.gazgap.gap"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        // 23, pas flutter.minSdkVersion (21) : firebase_auth et cloud_firestore exigent 23.
+        minSdk = 23
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
