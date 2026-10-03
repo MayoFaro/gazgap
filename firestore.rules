@@ -2,9 +2,21 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Un seul compte existera jamais côté client : l'authentification suffit.
+    // Exactement deux comptes, droits identiques (pilote + administrateur/
+    // technique) : pas de matrice de droits, juste ces deux UID. Remplacer
+    // les deux valeurs ci-dessous par les UID réels avant tout déploiement
+    // (voir Task 3) — tant qu'elles gardent ce préfixe, le déploiement doit
+    // être refusé en revue.
+    function isPiloteOuAdmin() {
+      return request.auth != null &&
+        request.auth.uid in [
+          'REMPLACER_PAR_UID_PILOTE',
+          'REMPLACER_PAR_UID_ADMIN'
+        ];
+    }
+
     match /flights/{id} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isPiloteOuAdmin();
     }
 
     // Tout le reste : refusé (pas de users/profiles/aircraft/settings).
