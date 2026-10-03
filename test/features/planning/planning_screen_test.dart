@@ -13,11 +13,24 @@ Widget host(FakeFlightApi flights, {FakeAuthService? auth}) => AppServices(
     );
 
 void main() {
-  testWidgets('liste vide : message dédié', (tester) async {
+  testWidgets('liste vide : message dédié par colonne', (tester) async {
     final flights = FakeFlightApi();
     await tester.pumpWidget(host(flights));
     await tester.pump();
-    expect(find.text('Aucun vol planifié.'), findsOneWidget);
+    expect(find.text('Aucun vol pour Hélico H1.'), findsOneWidget);
+    expect(find.text('Aucun vol pour Hélico H2.'), findsOneWidget);
+  });
+
+  testWidgets('vols H1 et H2 affichés dans des colonnes séparées (H1 à gauche)', (tester) async {
+    final a = testFlight(id: 'a', helicoId: 'H1', destination: 'A');
+    final b = testFlight(id: 'b', helicoId: 'H2', destination: 'B');
+    final flights = FakeFlightApi()..emit([a, b]);
+    await tester.pumpWidget(host(flights));
+    await tester.pump();
+
+    final xA = tester.getCenter(find.byKey(const Key('flight-a'))).dx;
+    final xB = tester.getCenter(find.byKey(const Key('flight-b'))).dx;
+    expect(xA, lessThan(xB));
   });
 
   testWidgets('erreur du flux Firestore : message affiché, pas confondu avec une liste vide', (tester) async {
@@ -72,6 +85,24 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(flights.calls, ['create:H1:Kara']);
+  });
+
+  testWidgets('création avec "Les deux" : un create par hélico', (tester) async {
+    final flights = FakeFlightApi();
+    await tester.pumpWidget(host(flights));
+    await tester.tap(find.byKey(const Key('add-flight')));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byKey(const Key('destination')), 'Kara');
+    await tester.tap(find.byKey(const Key('helico')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Les deux'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Enregistrer'));
+    await tester.pumpAndSettle();
+
+    expect(flights.calls.toSet(), {'create:H1:Kara', 'create:H2:Kara'});
+    expect(flights.calls.length, 2);
   });
 
   testWidgets('échec d\'écriture : message affiché, pas de crash', (tester) async {

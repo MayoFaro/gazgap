@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/helicos.dart';
 import '../../core/overlap.dart';
 import '../../data/flight.dart';
 import '../../data/flight_api.dart';
@@ -36,19 +37,22 @@ class _PlanningScreenState extends State<PlanningScreen> {
   }
 
   Future<void> _create() async {
-    final draft = await showDialog<FlightDraft>(
+    final drafts = await showDialog<List<FlightDraft>>(
       context: context,
       builder: (_) => const FlightFormDialog(),
     );
-    if (draft != null) await _run(() => _api.create(draft));
+    if (drafts == null) return;
+    for (final draft in drafts) {
+      await _run(() => _api.create(draft));
+    }
   }
 
   Future<void> _edit(Flight flight) async {
-    final draft = await showDialog<FlightDraft>(
+    final drafts = await showDialog<List<FlightDraft>>(
       context: context,
       builder: (_) => FlightFormDialog(initial: flight),
     );
-    if (draft != null) await _run(() => _api.update(flight.id, draft));
+    if (drafts != null) await _run(() => _api.update(flight.id, drafts.single));
   }
 
   Future<void> _delete(Flight flight) async {
@@ -113,6 +117,40 @@ class _PlanningScreenState extends State<PlanningScreen> {
     );
   }
 
+  Widget _buildColumn(Helico helico, List<Flight> allFlights) {
+    final flights = allFlights.where((f) => f.helicoId == helico.id).toList();
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: Text(
+              helico.label,
+              style: Theme.of(context).textTheme.titleMedium,
+              textAlign: TextAlign.center,
+            ),
+          ),
+          Expanded(
+            child: flights.isEmpty
+                ? Center(child: Text('Aucun vol pour ${helico.label}.'))
+                : ListView.builder(
+                    itemCount: flights.length,
+                    itemBuilder: (context, i) {
+                      final f = flights[i];
+                      return FlightTile(
+                        flight: f,
+                        hasOverlap: overlapsFor(f, allFlights).isNotEmpty,
+                        onTap: () => _openActions(f),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -146,19 +184,14 @@ class _PlanningScreenState extends State<PlanningScreen> {
                   child: Text(_error!),
                 ),
               Expanded(
-                child: flights.isEmpty
-                    ? const Center(child: Text('Aucun vol planifié.'))
-                    : ListView.builder(
-                        itemCount: flights.length,
-                        itemBuilder: (context, i) {
-                          final f = flights[i];
-                          return FlightTile(
-                            flight: f,
-                            hasOverlap: overlapsFor(f, flights).isNotEmpty,
-                            onTap: () => _openActions(f),
-                          );
-                        },
-                      ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildColumn(Helico.h1, flights),
+                    const VerticalDivider(width: 1),
+                    _buildColumn(Helico.h2, flights),
+                  ],
+                ),
               ),
             ],
           );
