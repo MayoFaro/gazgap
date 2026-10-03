@@ -1,0 +1,13 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Un seul compte existera jamais côté client : l'authentification suffit.
+    match /flights/{id} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Tout le reste : refusé (pas de users/profiles/aircraft/settings).
+    match /{document=**} { allow read, write: if false; }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "977200657790",
+    "project_id": "gazgap-7eb3a",
+    "storage_bucket": "gazgap-7eb3a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:977200657790:android:c6e89d4e2f88f4e0a9af2f",
+        "android_client_info": {
+          "package_name": "com.gazgap.gap"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC-k57pVZJZVRvTDQwNj69s5NK0lH8F_oU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
