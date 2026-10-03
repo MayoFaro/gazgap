@@ -9,6 +9,11 @@ build/
 .fvm/
 coverage/
 
+# Android / Gradle / Kotlin build caches
+android/.kotlin/
+android/.gradle/
+android/local.properties
+
 # Firebase
 .firebase/
 firebase-debug.log*
