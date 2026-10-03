@@ -1,0 +1,21 @@
+# Flutter / Dart
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+.idea/
+.fvm/
+coverage/
+
+# Firebase
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
+
+# Node (scripts/)
+node_modules/
+
+# Journal d'exécution des plans (local)
+.superpowers/
