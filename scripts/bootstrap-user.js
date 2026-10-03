@@ -1,4 +1,6 @@
-// Crée (ou retrouve) le compte unique du pilote GazGap. Usage :
+// Crée (ou retrouve) un compte GazGap (pilote OU administrateur — même
+// script, lancé une fois par compte ; les deux ont des droits identiques).
+// Usage :
 //   node bootstrap-user.js --project gazgap-7eb3a --email pilote@x.fr
 // Identifiants : gcloud auth application-default login (compte propriétaire du projet).
 const admin = require("firebase-admin");
