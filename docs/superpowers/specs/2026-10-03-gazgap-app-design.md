@@ -10,12 +10,16 @@ vide) et son propre projet Firebase. AppGAP viendra plus tard lire ce
 planning via un pont, chantier séparé non traité ici (cf. plan 6 d'UlmGap
 pour le même schéma).
 
-GazGap a un seul utilisateur. C'est délibérément plus simple qu'UlmGap : pas
-de matrice de droits, pas d'équipage, pas de carburant, pas de finances.
+GazGap a deux comptes utilisateurs — le pilote et un accès
+administrateur/technique — avec des **droits strictement identiques** :
+toujours pas de matrice de droits, juste deux comptes égaux au lieu d'un
+seul. C'est délibérément plus simple qu'UlmGap : pas d'équipage, pas de
+carburant, pas de finances.
 
 ## Objectif
 
-Permettre à l'unique pilote de **planifier**, **modifier**, **supprimer** des
+Permettre au pilote (et à l'administrateur, à égalité de droits) de
+**planifier**, **modifier**, **supprimer** des
 vols (date, heure, hélico, destination, remarque) et de marquer leur statut
 (`planifie` / `realise` / `annule`), en exposant ces données dans un format
 stable que le futur pont AppGAP pourra lire.
@@ -28,14 +32,16 @@ stable que le futur pont AppGAP pourra lire.
 | Plateformes | Android et web uniquement (pas d'iOS) |
 | Firebase | **Un seul projet**, pas de séparation dev/prod — disproportionné pour une app de cette taille |
 | Écritures | **Directes depuis le client**, sécurisées par les règles Firestore. Pas de Cloud Functions pour le CRUD |
-| Comptes | Un seul compte, créé à la main (Firebase Auth e-mail/mot de passe), pas d'inscription libre |
+| Comptes | **Deux comptes** (pilote + administrateur/technique), droits identiques, créés à la main (Firebase Auth e-mail/mot de passe), pas d'inscription libre |
 | Hélicos | 2, fixes, codés en dur dans l'app (pas de collection Firestore dédiée) |
 | Principe | KISS, plus strict encore que pour UlmGap vu le besoin réel |
 
 ## Hors périmètre
 
 - Gestion d'équipage, de carburant, de budget ou de finances.
-- Matrice de droits / plusieurs utilisateurs : un seul compte existera.
+- Matrice de droits : deux comptes existeront (pilote + administrateur/
+  technique) mais avec des droits strictement identiques — pas de rôles
+  différenciés, pas d'écran de gestion des comptes.
 - Le pont lui-même : la lecture du planning par AppGAP et son insertion dans
   le planning AppGAP sont un chantier séparé, dans le repo AppGAP (comme le
   plan 6 d'UlmGap). Ce projet se limite à exposer des données lisibles par ce
@@ -63,8 +69,10 @@ logique selon le statut, ce n'est pas à GazGap de filtrer.
 | `statut` **(contrat)** | string | `planifie` / `realise` / `annule` |
 | `createdAt` / `updatedAt` | timestamp | Horodatage technique |
 
-Pas de collection `users`, `profiles`, `aircraft` ni `settings` : un seul
-compte, deux hélicos fixes, aucun tarif à gérer.
+Pas de collection `users`, `profiles`, `aircraft` ni `settings` : deux
+comptes à droits identiques (identifiés par leur UID codé en dur dans les
+règles Firestore, pas dans une collection), deux hélicos fixes, aucun
+tarif à gérer.
 
 ### 1.2 Hélicos
 
@@ -99,13 +107,16 @@ inclus.
   toolchain qu'UlmGap (`fvm flutter`/`fvm dart`).
 - **Un seul projet Firebase** : pas de `--dart-define=ENV`, pas de flavors
   Android, pas de distinction dev/prod.
-- Règles Firestore : lecture/écriture de `flights` réservée à l'utilisateur
-  authentifié (`request.auth != null` suffit puisqu'un seul compte existera
-  jamais côté client).
+- Règles Firestore : lecture/écriture de `flights` réservée aux deux
+  comptes existants, identifiés par leur UID **codé en dur dans les
+  règles** (`request.auth.uid in [uidPilote, uidAdmin]`) — plus strict que
+  `request.auth != null`, qui accepterait n'importe quel compte, y compris
+  auto-inscrit.
 - Pas de Cloud Functions métier. Un script ponctuel (à la main, hors app)
-  peut créer l'unique compte Firebase Auth, sur le modèle de
-  `bootstrap-admin.js` dans UlmGap, mais simplifié (pas de rôle admin à
-  distinguer).
+  crée les deux comptes Firebase Auth (même script lancé une fois par
+  compte), sur le modèle de `bootstrap-admin.js` dans UlmGap, mais
+  simplifié (pas de rôle admin à distinguer côté Firestore : seuls les
+  deux UID comptent, pas un champ de rôle).
 
 ## 5. Tests
 
