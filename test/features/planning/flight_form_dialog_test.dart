@@ -19,12 +19,13 @@ Future<T?> openDialog<T>(WidgetTester tester, Widget dialog) async {
 }
 
 void main() {
-  testWidgets('création : destination et champs remplis renvoient un FlightDraft', (tester) async {
-    FlightDraft? draft;
+  testWidgets('création : destination et champs remplis renvoient un FlightDraft (H1 par défaut)',
+      (tester) async {
+    List<FlightDraft>? drafts;
     await tester.pumpWidget(MaterialApp(home: Builder(builder: (context) {
       return ElevatedButton(
         onPressed: () async {
-          draft = await showDialog<FlightDraft>(
+          drafts = await showDialog<List<FlightDraft>>(
               context: context, builder: (_) => const FlightFormDialog());
         },
         child: const Text('ouvrir'),
@@ -37,19 +38,74 @@ void main() {
     await tester.tap(find.text('Enregistrer'));
     await tester.pumpAndSettle();
 
-    expect(draft, isNotNull);
-    expect(draft!.helicoId, 'H1');
-    expect(draft!.destination, 'Lomé');
-    expect(draft!.dureeMinutes, 60);
+    expect(drafts, isNotNull);
+    expect(drafts!.length, 1);
+    expect(drafts!.single.helicoId, 'H1');
+    expect(drafts!.single.destination, 'Lomé');
+    expect(drafts!.single.dureeMinutes, 60);
+  });
+
+  testWidgets('création : "Les deux" renvoie un FlightDraft par hélico', (tester) async {
+    List<FlightDraft>? drafts;
+    await tester.pumpWidget(MaterialApp(home: Builder(builder: (context) {
+      return ElevatedButton(
+        onPressed: () async {
+          drafts = await showDialog<List<FlightDraft>>(
+              context: context, builder: (_) => const FlightFormDialog());
+        },
+        child: const Text('ouvrir'),
+      );
+    })));
+    await tester.tap(find.text('ouvrir'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byKey(const Key('destination')), 'Lomé');
+    await tester.tap(find.byKey(const Key('helico')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Les deux'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Enregistrer'));
+    await tester.pumpAndSettle();
+
+    expect(drafts, isNotNull);
+    expect(drafts!.length, 2);
+    expect(drafts!.map((d) => d.helicoId).toSet(), {'H1', 'H2'});
+    expect(drafts!.every((d) => d.destination == 'Lomé'), isTrue);
+  });
+
+  testWidgets('modification : pas d\'option "Les deux"', (tester) async {
+    final existing = Flight(
+      id: 'f1',
+      helicoId: 'H1',
+      start: DateTime(2026, 10, 12, 9, 30),
+      destination: 'Kara',
+      remarque: '',
+      statut: FlightStatus.planifie,
+      dureeMinutes: 60,
+    );
+    await tester.pumpWidget(MaterialApp(home: Builder(builder: (context) {
+      return ElevatedButton(
+        onPressed: () => showDialog<List<FlightDraft>>(
+            context: context, builder: (_) => FlightFormDialog(initial: existing)),
+        child: const Text('ouvrir'),
+      );
+    })));
+    await tester.tap(find.text('ouvrir'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('helico')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Les deux'), findsNothing);
   });
 
   testWidgets('destination vide : bloque la soumission', (tester) async {
-    FlightDraft? draft;
+    List<FlightDraft>? drafts;
     var popped = false;
     await tester.pumpWidget(MaterialApp(home: Builder(builder: (context) {
       return ElevatedButton(
         onPressed: () async {
-          draft = await showDialog<FlightDraft>(
+          drafts = await showDialog<List<FlightDraft>>(
               context: context, builder: (_) => const FlightFormDialog());
           popped = true;
         },
@@ -63,14 +119,14 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(popped, isFalse);
-    expect(draft, isNull);
+    expect(drafts, isNull);
     expect(find.text('Destination requise'), findsOneWidget);
   });
 
   testWidgets('durée nulle : bloque la soumission', (tester) async {
     await tester.pumpWidget(MaterialApp(home: Builder(builder: (context) {
       return ElevatedButton(
-        onPressed: () => showDialog<FlightDraft>(
+        onPressed: () => showDialog<List<FlightDraft>>(
             context: context, builder: (_) => const FlightFormDialog()),
         child: const Text('ouvrir'),
       );
@@ -87,11 +143,11 @@ void main() {
   });
 
   testWidgets('heure hors plage : bloque la soumission sans décaler la date', (tester) async {
-    FlightDraft? draft;
+    List<FlightDraft>? drafts;
     await tester.pumpWidget(MaterialApp(home: Builder(builder: (context) {
       return ElevatedButton(
         onPressed: () async {
-          draft = await showDialog<FlightDraft>(
+          drafts = await showDialog<List<FlightDraft>>(
               context: context, builder: (_) => const FlightFormDialog());
         },
         child: const Text('ouvrir'),
@@ -105,7 +161,7 @@ void main() {
     await tester.tap(find.text('Enregistrer'));
     await tester.pumpAndSettle();
 
-    expect(draft, isNull);
+    expect(drafts, isNull);
     expect(find.text('Heure invalide'), findsOneWidget);
   });
 
@@ -121,7 +177,7 @@ void main() {
     );
     await tester.pumpWidget(MaterialApp(home: Builder(builder: (context) {
       return ElevatedButton(
-        onPressed: () => showDialog<FlightDraft>(
+        onPressed: () => showDialog<List<FlightDraft>>(
             context: context, builder: (_) => FlightFormDialog(initial: existing)),
         child: const Text('ouvrir'),
       );

@@ -6,6 +6,22 @@ import '../../data/flight.dart';
 
 final _dateFmt = DateFormat('dd/MM/yyyy');
 
+/// Choix du menu déroulant hélico. `both` n'existe que pour piloter le
+/// formulaire (créer un FlightDraft par hélico) — jamais stocké tel quel,
+/// `Flight.helicoId` reste toujours 'H1' ou 'H2' (champ contrat).
+enum _HelicoChoice {
+  h1(Helico.h1, 'Hélico H1'),
+  h2(Helico.h2, 'Hélico H2'),
+  both(null, 'Les deux');
+
+  const _HelicoChoice(this.helico, this.label);
+  final Helico? helico;
+  final String label;
+
+  static _HelicoChoice fromHelico(Helico h) =>
+      h == Helico.h2 ? _HelicoChoice.h2 : _HelicoChoice.h1;
+}
+
 DateTime? _parseDate(String s) {
   try {
     return _dateFmt.parseStrict(s.trim());
@@ -25,7 +41,7 @@ class FlightFormDialog extends StatefulWidget {
 
 class _FlightFormDialogState extends State<FlightFormDialog> {
   final _formKey = GlobalKey<FormState>();
-  late Helico _helico;
+  late _HelicoChoice _helicoChoice;
   late final TextEditingController _date;
   late final TextEditingController _time;
   late final TextEditingController _duree;
@@ -36,7 +52,7 @@ class _FlightFormDialogState extends State<FlightFormDialog> {
   void initState() {
     super.initState();
     final f = widget.initial;
-    _helico = Helico.fromId(f?.helicoId) ?? Helico.h1;
+    _helicoChoice = _HelicoChoice.fromHelico(Helico.fromId(f?.helicoId) ?? Helico.h1);
     final start = f?.start ?? DateTime.now();
     _date = TextEditingController(text: _dateFmt.format(start));
     _time = TextEditingController(text: _fmtTime(start));
@@ -95,13 +111,20 @@ class _FlightFormDialogState extends State<FlightFormDialog> {
     if (!_formKey.currentState!.validate()) return;
     final start = _parseStart();
     if (start == null) return;
-    Navigator.of(context).pop(FlightDraft(
-      helicoId: _helico.id,
-      start: start,
-      destination: _destination.text,
-      remarque: _remarque.text,
-      dureeMinutes: int.tryParse(_duree.text.trim()) ?? 60,
-    ));
+    final dureeMinutes = int.tryParse(_duree.text.trim()) ?? 60;
+    final helicos = _helicoChoice == _HelicoChoice.both
+        ? Helico.values
+        : [_helicoChoice.helico!];
+    Navigator.of(context).pop([
+      for (final h in helicos)
+        FlightDraft(
+          helicoId: h.id,
+          start: start,
+          destination: _destination.text,
+          remarque: _remarque.text,
+          dureeMinutes: dureeMinutes,
+        ),
+    ]);
   }
 
   @override
@@ -114,14 +137,16 @@ class _FlightFormDialogState extends State<FlightFormDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              DropdownButtonFormField<Helico>(
+              DropdownButtonFormField<_HelicoChoice>(
                 key: const Key('helico'),
-                value: _helico,
+                value: _helicoChoice,
                 decoration: const InputDecoration(labelText: 'Hélico'),
-                items: Helico.values
-                    .map((h) => DropdownMenuItem(value: h, child: Text(h.label)))
-                    .toList(),
-                onChanged: (h) => setState(() => _helico = h!),
+                items: [
+                  for (final c in _HelicoChoice.values)
+                    if (c != _HelicoChoice.both || widget.initial == null)
+                      DropdownMenuItem(value: c, child: Text(c.label)),
+                ],
+                onChanged: (c) => setState(() => _helicoChoice = c!),
               ),
               TextFormField(
                 key: const Key('date'),
