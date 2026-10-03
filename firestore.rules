@@ -3,15 +3,17 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // Exactement deux comptes, droits identiques (pilote + administrateur/
-    // technique) : pas de matrice de droits, juste ces deux UID. Remplacer
-    // les deux valeurs ci-dessous par les UID réels avant tout déploiement
-    // (voir Task 3) — tant qu'elles gardent ce préfixe, le déploiement doit
-    // être refusé en revue.
+    // technique) : pas de matrice de droits, juste ces deux UID.
+    // - Admin (groodep@yahoo.fr) : uid réel.
+    // - Pilote : pas encore créé — tant que 'REMPLACER_PAR_UID_PILOTE'
+    //   subsiste ci-dessous, ce placeholder ne correspond à aucun compte
+    //   réel et ne match donc jamais ; remplacer dès que le compte pilote
+    //   existe (même procédure : scripts/bootstrap-user.js).
     function isPiloteOuAdmin() {
       return request.auth != null &&
         request.auth.uid in [
           'REMPLACER_PAR_UID_PILOTE',
-          'REMPLACER_PAR_UID_ADMIN'
+          '984RJIjYFdh7qIRFKlPH0heWTnD3'
         ];
     }
 
