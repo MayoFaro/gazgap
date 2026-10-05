@@ -92,8 +92,11 @@ flutter:
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
 
-# Icône Android générée depuis ic_gaz.png : `dart run flutter_launcher_icons`
+# Icônes Android et web (favicon) générées depuis ic_gaz.png : `dart run flutter_launcher_icons`
 flutter_launcher_icons:
   android: true
   ios: false
   image_path: "ic_gaz.png"
+  web:
+    generate: true
+    image_path: "ic_gaz.png"
