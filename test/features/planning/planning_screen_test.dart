@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:gazgap/data/flight.dart';
 import 'package:gazgap/data/services.dart';
 import 'package:gazgap/features/planning/planning_screen.dart';
@@ -13,6 +14,20 @@ Widget host(FakeFlightApi flights, {FakeAuthService? auth}) => AppServices(
     );
 
 void main() {
+  setUp(() => PackageInfo.setMockInitialValues(
+        appName: 'gazgap',
+        packageName: 'gazgap',
+        version: '1.2.3',
+        buildNumber: '4',
+        buildSignature: '',
+      ));
+
+  testWidgets('version affichée dans la barre de titre', (tester) async {
+    await tester.pumpWidget(host(FakeFlightApi()));
+    await tester.pump();
+    expect(find.descendant(of: find.byType(AppBar), matching: find.text('v1.2.3+4')), findsOneWidget);
+  });
+
   testWidgets('liste vide : message dédié par colonne', (tester) async {
     final flights = FakeFlightApi();
     await tester.pumpWidget(host(flights));

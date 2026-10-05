@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../core/helicos.dart';
 import '../../core/overlap.dart';
@@ -18,6 +19,7 @@ class PlanningScreen extends StatefulWidget {
 class _PlanningScreenState extends State<PlanningScreen> {
   Stream<List<Flight>>? _flightsStream;
   String? _error;
+  final Future<PackageInfo> _packageInfo = PackageInfo.fromPlatform();
 
   @override
   void didChangeDependencies() {
@@ -155,7 +157,24 @@ class _PlanningScreenState extends State<PlanningScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('GazGap — Planning'),
+        title: Row(
+          children: [
+            const Text('GazGap — Planning'),
+            const Spacer(),
+            FutureBuilder<PackageInfo>(
+              future: _packageInfo,
+              builder: (context, snap) {
+                final info = snap.data;
+                if (info == null) return const SizedBox.shrink();
+                return Text(
+                  'v${info.version}+${info.buildNumber}',
+                  key: const Key('app-version'),
+                  style: Theme.of(context).textTheme.labelSmall,
+                );
+              },
+            ),
+          ],
+        ),
         actions: [
           IconButton(
             key: const Key('signout'),
